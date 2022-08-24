@@ -49,10 +49,13 @@ public class LazySingletonAspectInstanceFactoryDecorator implements MetadataAwar
 
 	@Override
 	public Object getAspectInstance() {
+		// TODO: 疑问，为什么单例的就不需要上互斥锁
 		Object aspectInstance = this.materialized;
 		if (aspectInstance == null) {
+			// 拿到互斥锁
 			Object mutex = this.maaif.getAspectCreationMutex();
 			if (mutex == null) {
+				// 单例时，mutex才为空，此时直接创建Aspect Bean对象
 				aspectInstance = this.maaif.getAspectInstance();
 				this.materialized = aspectInstance;
 			}

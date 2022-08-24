@@ -218,12 +218,15 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 	 * Build the underlying AspectJ pointcut expression.
 	 */
 	private PointcutExpression buildPointcutExpression(@Nullable ClassLoader classLoader) {
+		// 初始化AspectJ的Pointcut解释器
 		PointcutParser parser = initializePointcutParser(classLoader);
+		// pointcut参数，一般为空
 		PointcutParameter[] pointcutParameters = new PointcutParameter[this.pointcutParameterNames.length];
 		for (int i = 0; i < pointcutParameters.length; i++) {
 			pointcutParameters[i] = parser.createPointcutParameter(
 					this.pointcutParameterNames[i], this.pointcutParameterTypes[i]);
 		}
+		// 解析得到AspectJ提供的PointcutExpression
 		return parser.parsePointcutExpression(replaceBooleanOperators(resolveExpression()),
 				this.pointcutDeclarationScope, pointcutParameters);
 	}
@@ -272,6 +275,7 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 		PointcutExpression pointcutExpression = obtainPointcutExpression();
 		try {
 			try {
+				// 判断类是否能匹配 pointcut的表达式
 				return pointcutExpression.couldMatchJoinPointsInType(targetClass);
 			}
 			catch (ReflectionWorldException ex) {

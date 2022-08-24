@@ -358,6 +358,7 @@ public abstract class ReflectionUtils {
 			// nothing to introspect
 			return;
 		}
+		// 获取所有Method（包括接口的默认方法），遍历并使用MethodFilter过滤，再将Method对象回调出去
 		Method[] methods = getDeclaredMethods(clazz, false);
 		for (Method method : methods) {
 			if (mf != null && !mf.matches(method)) {

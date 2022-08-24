@@ -146,6 +146,8 @@ final class InstantiationModelAwarePointcutAdvisorImpl
 	}
 
 	private Advice instantiateAdvice(AspectJExpressionPointcut pointcut) {
+		// 根据方法对应的Aop注解类型，从而得到增强类型：AspectJAroundAdvice、AspectJMethodBeforeAdvice、
+		// AspectJAfterAdvice、AspectJAfterReturningAdvice、AspectJAfterThrowingAdvice
 		Advice advice = this.aspectJAdvisorFactory.getAdvice(this.aspectJAdviceMethod, pointcut,
 				this.aspectInstanceFactory, this.declarationOrder, this.aspectName);
 		return (advice != null ? advice : EMPTY_ADVICE);

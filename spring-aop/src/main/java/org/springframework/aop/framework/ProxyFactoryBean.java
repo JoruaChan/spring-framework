@@ -247,8 +247,10 @@ public class ProxyFactoryBean extends ProxyCreatorSupport
 	@Override
 	@Nullable
 	public Object getObject() throws BeansException {
+		// 根据定义的MethodInterceptor来生成Advisor，并添加到Advisor链上
 		initializeAdvisorChain();
 		if (isSingleton()) {
+			// 如果是单例，则首次去创建代理对象，后面则拿缓存对象
 			return getSingletonInstance();
 		}
 		else {
@@ -256,6 +258,7 @@ public class ProxyFactoryBean extends ProxyCreatorSupport
 				logger.info("Using non-singleton proxies with singleton targets is often undesirable. " +
 						"Enable prototype proxies by setting the 'targetName' property.");
 			}
+			// 非单例，则去拷贝生成一个
 			return newPrototypeInstance();
 		}
 	}
@@ -275,9 +278,11 @@ public class ProxyFactoryBean extends ProxyCreatorSupport
 		}
 		Class<?>[] ifcs = getProxiedInterfaces();
 		if (ifcs.length == 1) {
+			// 只有一个接口，则直接返回这个接口Class
 			return ifcs[0];
 		}
 		else if (ifcs.length > 1) {
+			// 多个接口，则使用JDK提供的Proxy#getProxyClass
 			return createCompositeInterface(ifcs);
 		}
 		else if (this.targetName != null && this.beanFactory != null) {
@@ -314,6 +319,7 @@ public class ProxyFactoryBean extends ProxyCreatorSupport
 	 */
 	private synchronized Object getSingletonInstance() {
 		if (this.singletonInstance == null) {
+			// 将单例模式的代理对象缓存
 			this.targetSource = freshTargetSource();
 			if (this.autodetectInterfaces && getProxiedInterfaces().length == 0 && !isProxyTargetClass()) {
 				// Rely on AOP infrastructure to tell us what interfaces to proxy.
@@ -325,6 +331,7 @@ public class ProxyFactoryBean extends ProxyCreatorSupport
 			}
 			// Initialize the shared singleton instance.
 			super.setFrozen(this.freezeProxy);
+			// 就是通过AopProxy得到代理对象
 			this.singletonInstance = getProxy(createAopProxy());
 		}
 		return this.singletonInstance;
@@ -436,6 +443,7 @@ public class ProxyFactoryBean extends ProxyCreatorSupport
 			// Materialize interceptor chain from bean names.
 			for (String name : this.interceptorNames) {
 				if (name.endsWith(GLOBAL_SUFFIX)) {
+					// 方法拦截器是全局的，则将Advisor添加到BeanFactory中
 					if (!(this.beanFactory instanceof ListableBeanFactory)) {
 						throw new AopConfigException(
 								"Can only use global advisors or interceptors with a ListableBeanFactory");
@@ -457,6 +465,7 @@ public class ProxyFactoryBean extends ProxyCreatorSupport
 						// Avoid unnecessary creation of prototype bean just for advisor chain initialization.
 						advice = new PrototypePlaceholderAdvisor(name);
 					}
+					// 非全局的方法拦截器，则根据name获取方法Advice，并包装成Advisor
 					addAdvisorOnChainCreation(advice);
 				}
 			}

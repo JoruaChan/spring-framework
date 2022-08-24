@@ -64,18 +64,22 @@ public abstract class AopNamespaceUtils {
 
 	public static void registerAspectJAutoProxyCreatorIfNecessary(
 			ParserContext parserContext, Element sourceElement) {
-
+		// 往BeanFactory中注册ProxyCreator，按高到低优先级，只可能是这三种的一个：
+		// AnnotationAwareAspectJAuto、AspectJAwareAdvisorAutoProxyCreator、InfrastructureAdvisorAutoProxyCreator
 		BeanDefinition beanDefinition = AopConfigUtils.registerAspectJAutoProxyCreatorIfNecessary(
 				parserContext.getRegistry(), parserContext.extractSource(sourceElement));
+		// 解析proxyTargetClass、exposeProxy两个属性
 		useClassProxyingIfNecessary(parserContext.getRegistry(), sourceElement);
+		// 注册并通知
 		registerComponentIfNecessary(beanDefinition, parserContext);
 	}
 
 	public static void registerAspectJAnnotationAutoProxyCreatorIfNecessary(
 			ParserContext parserContext, Element sourceElement) {
-
+		// 得到AspectJAnnotationAutoProxyCreator的BeanDefinition
 		BeanDefinition beanDefinition = AopConfigUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(
 				parserContext.getRegistry(), parserContext.extractSource(sourceElement));
+		// 为解析得到的BeanDefinition添加proxyTargetClass、exposeProxy属性
 		useClassProxyingIfNecessary(parserContext.getRegistry(), sourceElement);
 		registerComponentIfNecessary(beanDefinition, parserContext);
 	}
@@ -84,10 +88,14 @@ public abstract class AopNamespaceUtils {
 		if (sourceElement != null) {
 			boolean proxyTargetClass = Boolean.parseBoolean(sourceElement.getAttribute(PROXY_TARGET_CLASS_ATTRIBUTE));
 			if (proxyTargetClass) {
+				// 往ProxyCreator的BeanDefinition中添加proxyTargetClass属性
+				// 这个属性即是否强制使用cglib子类代理
 				AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
 			}
 			boolean exposeProxy = Boolean.parseBoolean(sourceElement.getAttribute(EXPOSE_PROXY_ATTRIBUTE));
 			if (exposeProxy) {
+				// 往ProxyCreator的BeanDefinition中添加exposeProxy属性
+				// 这个属性即是否开启ThreadLocal保存代理对象
 				AopConfigUtils.forceAutoProxyCreatorToExposeProxy(registry);
 			}
 		}

@@ -55,20 +55,25 @@ public class DefaultAdvisorAdapterRegistry implements AdvisorAdapterRegistry, Se
 
 	@Override
 	public Advisor wrap(Object adviceObject) throws UnknownAdviceTypeException {
+		// 将Advice包装成Advisor
 		if (adviceObject instanceof Advisor) {
+			// 如果是Advisor，不需要包装
 			return (Advisor) adviceObject;
 		}
 		if (!(adviceObject instanceof Advice)) {
+			// 不是Advice对象，抛出异常
 			throw new UnknownAdviceTypeException(adviceObject);
 		}
 		Advice advice = (Advice) adviceObject;
 		if (advice instanceof MethodInterceptor) {
+			// 如果是MethodInterceptor，Pointcut.TRUE + MethodInterceptor作为Advisor
 			// So well-known it doesn't even need an adapter.
 			return new DefaultPointcutAdvisor(advice);
 		}
 		for (AdvisorAdapter adapter : this.adapters) {
 			// Check that it is supported.
 			if (adapter.supportsAdvice(advice)) {
+				// 根据Advice属于Before或After或Throw，选择适合的Advisor
 				return new DefaultPointcutAdvisor(advice);
 			}
 		}
@@ -77,11 +82,16 @@ public class DefaultAdvisorAdapterRegistry implements AdvisorAdapterRegistry, Se
 
 	@Override
 	public MethodInterceptor[] getInterceptors(Advisor advisor) throws UnknownAdviceTypeException {
+		// 根据Advisor获取MethodInterceptor列表
 		List<MethodInterceptor> interceptors = new ArrayList<>(3);
 		Advice advice = advisor.getAdvice();
+		// advice直接是MethodInterceptor
 		if (advice instanceof MethodInterceptor) {
 			interceptors.add((MethodInterceptor) advice);
 		}
+
+		// 判断是不是Before、AfterReturning、Throw的Advice
+		// 是的话，则包装成MethodInterceptor.实现invoke()方法确定调用链
 		for (AdvisorAdapter adapter : this.adapters) {
 			if (adapter.supportsAdvice(advice)) {
 				interceptors.add(adapter.getInterceptor(advisor));
@@ -95,6 +105,7 @@ public class DefaultAdvisorAdapterRegistry implements AdvisorAdapterRegistry, Se
 
 	@Override
 	public void registerAdvisorAdapter(AdvisorAdapter adapter) {
+		// 添加AdvisorAdapter
 		this.adapters.add(adapter);
 	}
 

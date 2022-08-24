@@ -84,34 +84,51 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 		List<String> aspectNames = this.aspectBeanNames;
 
 		if (aspectNames == null) {
+			// 获取Aspect的Bean，并解析出所有Advisor；
+			// 如果单例Aspect，则直接缓存得到的Advisor对象；
+			// 如果非单例Aspect，则缓存MetadataAwareAspectInstanceFactory；
 			synchronized (this) {
 				aspectNames = this.aspectBeanNames;
 				if (aspectNames == null) {
 					List<Advisor> advisors = new ArrayList<>();
 					aspectNames = new ArrayList<>();
+
+					// 获取所有Bean
 					String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 							this.beanFactory, Object.class, true, false);
 					for (String beanName : beanNames) {
 						if (!isEligibleBean(beanName)) {
+							// 不符合条件，不处理
 							continue;
 						}
 						// We must be careful not to instantiate beans eagerly as in this case they
 						// would be cached by the Spring container but would not have been weaved.
+
+						// 获取BeanFactory中注册的Class对象（注意此时并没有实例化）
 						Class<?> beanType = this.beanFactory.getType(beanName, false);
 						if (beanType == null) {
 							continue;
 						}
+
+						// 类被@Aspect注解，且不是AspectJ编译过的
 						if (this.advisorFactory.isAspect(beanType)) {
 							aspectNames.add(beanName);
+
+							// AspectMetadata：根据bean的class解析成AjType，从而得到Class关于切面的参数配置等
 							AspectMetadata amd = new AspectMetadata(beanType, beanName);
 							if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
+								// TODO: 疑问，为什么BeanFactoryAspectInstanceFactory又重新生成AspectMetadata
 								MetadataAwareAspectInstanceFactory factory =
 										new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
+
+								// 解析带有@Aspect注解的类
 								List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
 								if (this.beanFactory.isSingleton(beanName)) {
+									// 如果是单例，则直接缓存advisor
 									this.advisorsCache.put(beanName, classAdvisors);
 								}
 								else {
+									// 不是单例，则缓存factory
 									this.aspectFactoryCache.put(beanName, factory);
 								}
 								advisors.addAll(classAdvisors);
@@ -138,6 +155,8 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 		if (aspectNames.isEmpty()) {
 			return Collections.emptyList();
 		}
+
+		// 遍历所有BeanName，单例Aspect则直接取Advisor，非单例则从缓存工厂中取Advisor
 		List<Advisor> advisors = new ArrayList<>();
 		for (String aspectName : aspectNames) {
 			List<Advisor> cachedAdvisors = this.advisorsCache.get(aspectName);

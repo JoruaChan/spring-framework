@@ -81,6 +81,7 @@ public class AspectMetadata implements Serializable {
 	public AspectMetadata(Class<?> aspectClass, String aspectName) {
 		this.aspectName = aspectName;
 
+		// 按照指定的Class遍历所有父类，找到最近的被@Aspect注解的父类（或自己）
 		Class<?> currClass = aspectClass;
 		AjType<?> ajType = null;
 		while (currClass != Object.class) {
@@ -100,6 +101,8 @@ public class AspectMetadata implements Serializable {
 		this.aspectClass = ajType.getJavaClass();
 		this.ajType = ajType;
 
+		// 获取切面类型，aspectj根据@Aspect的value属性区分
+		// 根据切面类型获得对应的Pointcut
 		switch (this.ajType.getPerClause().getKind()) {
 			case SINGLETON:
 				this.perClausePointcut = Pointcut.TRUE;

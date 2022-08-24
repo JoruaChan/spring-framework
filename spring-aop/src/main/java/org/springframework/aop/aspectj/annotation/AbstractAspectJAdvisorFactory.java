@@ -103,6 +103,7 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 	@Override
 	public void validate(Class<?> aspectClass) throws AopConfigException {
 		// If the parent has the annotation and isn't abstract it's an error
+		// 注解@Aspect类的父类，也注解@Aspect，且非抽象类，不能代理
 		Class<?> superclass = aspectClass.getSuperclass();
 		if (superclass.getAnnotation(Aspect.class) != null &&
 				!Modifier.isAbstract(superclass.getModifiers())) {

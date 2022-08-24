@@ -108,6 +108,8 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 		}
 		this.advised = config;
 		this.proxiedInterfaces = AopProxyUtils.completeProxiedInterfaces(this.advised, true);
+
+		// 判断代理接口中有没有equals、hashCode重写方法
 		findDefinedEqualsAndHashCodeMethods(this.proxiedInterfaces);
 	}
 
@@ -183,6 +185,7 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 				return hashCode();
 			}
 			else if (method.getDeclaringClass() == DecoratingProxy.class) {
+				// 嵌套代理对象，遍历找到最原始的目标类
 				// There is only getDecoratedClass() declared -> dispatch to proxy config.
 				return AopProxyUtils.ultimateTargetClass(this.advised);
 			}
